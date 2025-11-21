@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="p5.js Web App" />
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-YG49SKHZYM"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "G-YG49SKHZYM");
+    </script>
+
+    <link
+      rel="icon"
+      href="https://cdn.glitch.global/c3629c31-92de-44ca-bb71-5c608c584639/P5.js_icon.svg?v=1739962833574"
+      type="image/svg+xml"
+    />
+    <link rel="apple-touch-icon" href="https://cdn.glitch.global/c3629c31-92de-44ca-bb71-5c608c584639/appstore.png?v=1739963169085" />
+
+    <title>p5.js Web App Converter</title>
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        padding: 20px;
+        background: #1e1e1e;
+        color: #fff;
+        min-height: 100vh;
+      }
+
+      body.fixed {
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        -webkit-overflow-scrolling: none;
+      }
+
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        width: 100%;
+      }
+
+      h1 {
+        font-size: 24px;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+
+      .input-group {
+        margin-bottom: 20px;
+      }
+
+      input[type="url"],
+      input[type="text"] {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #333;
+        border-radius: 8px;
+        background: #2d2d2d;
+        color: #fff;
+        font-size: 16px;
+        margin-bottom: 10px;
+      }
+
+      .options-group {
+        background: #2d2d2d;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 15px 0;
+      }
+
+      .checkbox-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .checkbox-wrapper:last-child {
+        margin-bottom: 0;
+      }
+
+      input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+      }
+
+      label {
+        cursor: pointer;
+        font-size: 16px;
+      }
+
+      button {
+        width: 100%;
+        padding: 12px;
+        background: #ed225d;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+
+      button:hover {
+        background: #ff4081;
+      }
+
+      .instructions {
+        margin-top: 20px;
+        padding: 20px;
+        background: #2d2d2d;
+        border-radius: 8px;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .instructions h2 {
+        margin-bottom: 10px;
+        font-size: 18px;
+      }
+
+      .instructions ol {
+        margin-left: 20px;
+      }
+
+      .instructions li {
+        margin-bottom: 8px;
+      }
+
+      .error {
+        color: #ff4081;
+        margin-top: 10px;
+        display: none;
+      }
+
+      iframe {
+        display: none;
+        border: none;
+        background: black;
+      }
+
+      iframe.normal {
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+      }
+
+      iframe.scaled {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: calc(100vh + 42px);
+        transform: translateY(-42px);
+      }
+
+      .title-input {
+        display: none;
+      }
+
+      .title-input.visible {
+        display: block;
+      }
+
+      .disclaimer {
+        margin-top: 20px;
+        padding: 20px;
+        background: #2d2d2d;
+        border-radius: 8px;
+        font-size: 14px;
+        line-height: 1.5;
+        border-left: 4px solid #ed225d;
+        margin-bottom: 20px;
+      }
+
+      .disclaimer h2 {
+        margin-bottom: 10px;
+        font-size: 18px;
+        color: #ed225d;
+      }
+
+      .disclaimer p {
+        margin-bottom: 10px;
+      }
+
+      .disclaimer p:last-child {
+        margin-bottom: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container" id="converter">
+      <h1>p5.js Web App Converter</h1>
+
+      <div class="input-group">
+        <input
+          type="url"
+          id="sketchUrl"
+          placeholder="Paste p5.js editor URL (e.g., https://editor.p5js.org/username/sketches/sketchid)"
+          autocomplete="off"
+          spellcheck="false"
+        />
+
+        <div class="options-group">
+          <div class="checkbox-wrapper">
+            <input type="checkbox" id="removeNavbar" />
+            <label for="removeNavbar">Make the p5 navbar invisible.</label>
+          </div>
+        </div>
+
+        <div>
+          <input
+            type="text"
+            id="sketchTitle"
+            placeholder="Enter sketch title (optional)"
+            autocomplete="off"
+            spellcheck="false"
+          />
+        </div>
+
+        <button onclick="convertToWebApp()">Convert to Web App</button>
+        <p id="error" class="error">
+          Invalid URL. Please use a p5.js editor URL.
+        </p>
+      </div>
+
+      <div class="instructions">
+        <h2>Instructions:</h2>
+        <ol>
+          <li>Paste any p5.js editor URL</li>
+          <li>Choose whether to make the p5 navbar invisible.</li>
+          <li>Optionally enter a custom title for the web app</li>
+          <li>Click "Convert to Web App"</li>
+          <li>Once the sketch loads, tap the share button in Safari</li>
+          <li>Select "Add to Home Screen"</li>
+          <li>Your sketch will now run as a fullscreen web app!</li>
+        </ol>
+      </div>
+
+      <div class="disclaimer">
+        <h2>Disclaimer & Terms of Use</h2>
+        <p>
+          This tool is provided for educational and creative purposes only
+          without any warranties or guarantees. By using this converter, you
+          agree to the following:
+        </p>
+        <p>
+          1. Security Notice: This tool loads external content from p5.js
+          editor. Users are responsible for verifying the safety and legitimacy
+          of the content they load. Only use URLs from trusted sources.
+        </p>
+        <p>
+          2. Liability: The creator(s) of this converter are not responsible for
+          any damages, losses, or consequences that may result from using this
+          tool or any converted web apps. Users assume all risks associated with
+          running external code.
+        </p>
+        <p>
+          3. Usage Rights: This tool is for personal and educational use only.
+          Users are responsible for complying with all applicable laws and p5.js
+          terms of service when using converted sketches.
+        </p>
+        <p>
+          4. Content Responsibility: Users are solely responsible for any
+          content they load through this converter. The creator(s) do not
+          endorse or take responsibility for any third-party content.
+        </p>
+        <p>
+          5. Permissions: Users must ensure they have necessary rights and
+          permissions for any content they convert and distribute using this
+          tool.
+        </p>
+      </div>
+    </div>
+
+    <iframe
+      id="sketchFrame"
+      allow="camera *; microphone *; gyroscope *; accelerometer *; xr-spatial-tracking; magnetometer *; gamepad *; ambient-light-sensor *; autoplay; bluetooth *; encrypted-media; geolocation *; hid; microphone *;  midi *; payment; usb *; serial *; vr;"
+      allowfullscreen="true"
+      scrolling="no"
+      sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-pointer-lock allow-downloads allow-modals allow-presentation"
+    >
+    </iframe>
+
+    <script>
+      window.addEventListener("DOMContentLoaded", () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const sketchUrl = urlParams.get("URL");
+        const title = urlParams.get("title");
+        const removeNav = urlParams.get("removeNav") === "true";
+
+        if (sketchUrl) {
+          document.getElementById("sketchUrl").value = sketchUrl;
+          document.getElementById("removeNavbar").checked = removeNav;
+          if (title) {
+            document.getElementById("sketchTitle").value = title;
+          }
+          convertToWebApp();
+        }
+      });
+
+      function createWebAppURL(sketchURL) {
+        const url = new URL(sketchURL);
+        if (url.hostname === "editor.p5js.org") {
+          const pathParts = url.pathname.split("/");
+          const username = pathParts[1];
+          const sketchId = pathParts[pathParts.length - 1];
+          return `https://preview.p5js.org/${username}/present/${sketchId}`;
+        }
+        return sketchURL;
+      }
+
+      function convertToWebApp() {
+        const input = document.getElementById("sketchUrl");
+        const titleInput = document.getElementById("sketchTitle");
+        const removeNavbar = document.getElementById("removeNavbar").checked;
+        const error = document.getElementById("error");
+        const frame = document.getElementById("sketchFrame");
+        const container = document.querySelector(".container");
+        const url = input.value.trim();
+
+        error.style.display = "none";
+
+        try {
+          let fullUrl;
+          let sketchId;
+          let username;
+
+          if (url.includes("/full/") || url.includes("/present/")) {
+            fullUrl = url;
+            sketchId = url.split("/").pop();
+          } else {
+            const match = url.match(
+              /editor\.p5js\.org\/([^\/]+)\/(?:sketches|full)\/([^\/]+)/
+            );
+            if (match) {
+              [, username, sketchId] = match;
+              fullUrl = `https://preview.p5js.org/${username}/present/${sketchId}`;
+            } else {
+              throw new Error("Invalid URL format");
+            }
+          }
+
+          const customTitle = titleInput.value.trim();
+          const sketchTitle = customTitle || `p5 Sketch:${username} ${sketchId}`;
+
+          const newUrl = new URL(window.location.href);
+          newUrl.searchParams.set("URL", url);
+          newUrl.searchParams.set("removeNav", removeNavbar);
+          if (customTitle) {
+            newUrl.searchParams.set("title", customTitle);
+          }
+          window.history.replaceState({}, "", newUrl);
+
+          frame.src = createWebAppURL(fullUrl);
+          frame.style.display = "block";
+          frame.className = removeNavbar ? "scaled" : "normal";
+          container.style.display = "none";
+
+          // Add fixed class to body after conversion
+          document.body.classList.add("fixed");
+
+          document.addEventListener(
+            "touchmove",
+            (e) => {
+              e.preventDefault();
+            },
+            { passive: false }
+          );
+
+          window.addEventListener("orientationchange", () => {
+            window.scrollTo(0, 0);
+          });
+
+          const metaTitle = document.querySelector(
+            'meta[name="apple-mobile-web-app-title"]'
+          );
+          const title = document.querySelector("title");
+          metaTitle.content = sketchTitle;
+          title.textContent = sketchTitle;
+        } catch (e) {
+          error.style.display = "block";
+          error.textContent = "Invalid URL. Please use a p5.js editor URL.";
+        }
+      }
+    </script>
+  </body>
+</html>
