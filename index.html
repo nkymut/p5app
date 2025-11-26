@@ -28,10 +28,10 @@
 
     <link
       rel="icon"
-      href="https://cdn.glitch.global/c3629c31-92de-44ca-bb71-5c608c584639/P5.js_icon.svg?v=1739962833574"
+      href="./assets/P5.js_icon.svg"`
       type="image/svg+xml"
     />
-    <link rel="apple-touch-icon" href="https://cdn.glitch.global/c3629c31-92de-44ca-bb71-5c608c584639/appstore.png?v=1739963169085" />
+    <link rel="apple-touch-icon" href="./assets/appstore.png" />
 
     <title>p5.js Web App Converter</title>
 
@@ -193,6 +193,29 @@
         transform: translateY(-42px);
       }
 
+      iframe.no-pointer-events {
+        pointer-events: none;
+      }
+
+      iframe.no-zoom {
+        touch-action: none;
+      }
+
+      body.no-zoom {
+        touch-action: none;
+        -ms-touch-action: none;
+      }
+
+      body.no-selection {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+      }
+
       .title-input {
         display: none;
       }
@@ -244,6 +267,10 @@
           <div class="checkbox-wrapper">
             <input type="checkbox" id="removeNavbar" />
             <label for="removeNavbar">Make the p5 navbar invisible.</label>
+          </div>
+          <div class="checkbox-wrapper">
+            <input type="checkbox" id="disableTouch" />
+            <label for="disableTouch">Disable Touch Inputs.</label>
           </div>
         </div>
 
@@ -327,10 +354,12 @@
         const sketchUrl = urlParams.get("URL");
         const title = urlParams.get("title");
         const removeNav = urlParams.get("removeNav") === "true";
+        const disableTouch = urlParams.get("disableTouch") === "true";
 
         if (sketchUrl) {
           document.getElementById("sketchUrl").value = sketchUrl;
           document.getElementById("removeNavbar").checked = removeNav;
+          document.getElementById("disableTouch").checked = disableTouch;
           if (title) {
             document.getElementById("sketchTitle").value = title;
           }
@@ -353,6 +382,7 @@
         const input = document.getElementById("sketchUrl");
         const titleInput = document.getElementById("sketchTitle");
         const removeNavbar = document.getElementById("removeNavbar").checked;
+        const disableTouch = document.getElementById("disableTouch").checked;
         const error = document.getElementById("error");
         const frame = document.getElementById("sketchFrame");
         const container = document.querySelector(".container");
@@ -381,11 +411,14 @@
           }
 
           const customTitle = titleInput.value.trim();
-          const sketchTitle = customTitle || `p5 Sketch:${username} ${sketchId}`;
+          const sketchTitle = `${customTitle} | ${username}`|| `p5 Sketch:${username} ${sketchId}`;
 
           const newUrl = new URL(window.location.href);
           newUrl.searchParams.set("URL", url);
           newUrl.searchParams.set("removeNav", removeNavbar);
+          newUrl.searchParams.set("disableTouch", disableTouch);
+          newUrl.searchParams.set("username", username);
+          newUrl.searchParams.set("sketchId", sketchId);
           if (customTitle) {
             newUrl.searchParams.set("title", customTitle);
           }
@@ -393,11 +426,73 @@
 
           frame.src = createWebAppURL(fullUrl);
           frame.style.display = "block";
-          frame.className = removeNavbar ? "scaled" : "normal";
+          let frameClass = removeNavbar ? "scaled" : "normal";
+          if (disableTouch) {
+            frameClass += " no-pointer-events no-zoom";
+            document.body.classList.add("no-selection", "no-zoom");
+          }
+          frame.className = frameClass;
           container.style.display = "none";
 
           // Add fixed class to body after conversion
           document.body.classList.add("fixed");
+
+          // Prevent text selection, long press magnifier, and zoom when disableTouch is enabled
+          if (disableTouch) {
+            document.addEventListener("selectstart", (e) => e.preventDefault());
+            document.addEventListener("dragstart", (e) => e.preventDefault());
+            document.addEventListener("contextmenu", (e) => e.preventDefault());
+            
+            // Prevent long press magnifier on iOS
+            let touchStartTime = 0;
+            let touchStartTarget = null;
+            let lastTouchEnd = 0;
+            document.addEventListener("touchstart", (e) => {
+              touchStartTime = Date.now();
+              touchStartTarget = e.target;
+              // Prevent default on single touch to disable long press magnifier
+              if (e.touches.length === 1) {
+                e.preventDefault();
+              }
+            }, { passive: false });
+            
+            document.addEventListener("touchmove", (e) => {
+              // Reset timer if user moves finger (indicates it's not a long press)
+              if (Math.abs(e.touches[0].clientX - (touchStartTarget?.getBoundingClientRect().left || 0)) > 5 ||
+                  Math.abs(e.touches[0].clientY - (touchStartTarget?.getBoundingClientRect().top || 0)) > 5) {
+                touchStartTime = 0;
+              }
+            }, { passive: false });
+            
+            document.addEventListener("touchend", (e) => {
+              // If touch was held for more than 300ms (long press threshold), prevent default
+              const touchDuration = Date.now() - touchStartTime;
+              if (touchDuration > 300 && touchStartTime > 0) {
+                e.preventDefault();
+              }
+              touchStartTime = 0;
+              touchStartTarget = null;
+              
+              // Prevent double-tap zoom on mobile
+              const now = Date.now();
+              if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+              }
+              lastTouchEnd = now;
+            }, { passive: false });
+            
+            // Prevent pinch zoom
+            document.addEventListener("gesturestart", (e) => e.preventDefault());
+            document.addEventListener("gesturechange", (e) => e.preventDefault());
+            document.addEventListener("gestureend", (e) => e.preventDefault());
+            
+            // Prevent wheel zoom (Ctrl/Cmd + wheel)
+            document.addEventListener("wheel", (e) => {
+              if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+              }
+            }, { passive: false });
+          }
 
           document.addEventListener(
             "touchmove",
