@@ -12,6 +12,20 @@
       content="black-translucent"
     />
     <meta name="apple-mobile-web-app-title" content="p5.js Web App" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="p5.js Web App Converter" />
+    <meta property="og:description" content="Convert any p5.js editor sketch into a fullscreen progressive web app for iOS and Android. Perfect for creating interactive demos and exhibits." />
+    <meta property="og:image" content="" id="og-image" />
+    <meta property="og:url" content="" id="og-url" />
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="p5.js Web App Converter" />
+    <meta name="twitter:description" content="Convert any p5.js editor sketch into a fullscreen progressive web app for iOS and Android. Perfect for creating interactive demos and exhibits." />
+    <meta name="twitter:image" content="" id="twitter-image" />
+    
     <script
       async
       src="https://www.googletagmanager.com/gtag/js?id=G-YG49SKHZYM"
@@ -24,6 +38,19 @@
       gtag("js", new Date());
 
       gtag("config", "G-YG49SKHZYM");
+    </script>
+    
+    <script>
+      // Set absolute URLs for social media meta tags
+      (function() {
+        const baseUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/');
+        const imageUrl = baseUrl + 'assets/appstore.png';
+        const pageUrl = window.location.href.split('?')[0]; // Remove query params for cleaner URL
+        
+        document.getElementById('og-image').content = imageUrl;
+        document.getElementById('og-url').content = pageUrl;
+        document.getElementById('twitter-image').content = imageUrl;
+      })();
     </script>
 
     <link
@@ -398,6 +425,17 @@
           if (url.includes("/full/") || url.includes("/present/")) {
             fullUrl = url;
             sketchId = url.split("/").pop();
+            // Extract username from preview.p5js.org URLs
+            const previewMatch = url.match(/preview\.p5js\.org\/([^\/]+)\//);
+            if (previewMatch) {
+              username = previewMatch[1];
+            } else {
+              // Fallback: try to extract from any p5js.org URL
+              const fallbackMatch = url.match(/p5js\.org\/([^\/]+)\//);
+              if (fallbackMatch) {
+                username = fallbackMatch[1];
+              }
+            }
           } else {
             const match = url.match(
               /editor\.p5js\.org\/([^\/]+)\/(?:sketches|full)\/([^\/]+)/
@@ -512,6 +550,39 @@
           const title = document.querySelector("title");
           metaTitle.content = sketchTitle;
           title.textContent = sketchTitle;
+          
+          // Update social media meta tags with sketch information
+          const ogTitle = document.querySelector('meta[property="og:title"]');
+          const ogDescription = document.querySelector('meta[property="og:description"]');
+          const ogUrl = document.getElementById('og-url');
+          const twitterTitle = document.querySelector('meta[name="twitter:title"]');
+          const twitterDescription = document.querySelector('meta[name="twitter:description"]');
+          
+          if (ogTitle) ogTitle.content = sketchTitle;
+          if (ogDescription) {
+            if (username) {
+              ogDescription.content = customTitle 
+                ? `Interactive p5.js sketch: ${customTitle} by ${username}`
+                : `Interactive p5.js sketch by ${username}`;
+            } else {
+              ogDescription.content = customTitle 
+                ? `Interactive p5.js sketch: ${customTitle}`
+                : `Interactive p5.js sketch`;
+            }
+          }
+          if (ogUrl) ogUrl.content = window.location.href;
+          if (twitterTitle) twitterTitle.content = sketchTitle;
+          if (twitterDescription) {
+            if (username) {
+              twitterDescription.content = customTitle 
+                ? `Interactive p5.js sketch: ${customTitle} by ${username}`
+                : `Interactive p5.js sketch by ${username}`;
+            } else {
+              twitterDescription.content = customTitle 
+                ? `Interactive p5.js sketch: ${customTitle}`
+                : `Interactive p5.js sketch`;
+            }
+          }
         } catch (e) {
           error.style.display = "block";
           error.textContent = "Invalid URL. Please use a p5.js editor URL.";
